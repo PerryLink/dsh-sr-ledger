@@ -1,0 +1,12 @@
+# dsh-sr-ledger bundle patch: mount the systematic-review ledger tools.
+#
+# Every key below is a Config field (Schemastery schema); invalid values fail the
+# profile load loudly. The ledger is local and append-only.
+- insert:
+    - id: dsh-sr-ledger
+      name: dsh-sr-ledger
+      config:
+        # Master switch. On by default; `false` mounts no tools at all.
+        enabled: true
+        # Review ledger root (review.json, journals, exports).
+        root: .sr-ledger
