@@ -96,9 +96,9 @@ function invalid(message: string): never {
   throw new SrError('INVALID_INPUT', message)
 }
 
-/** True when `value` is a non-null object. */
+/** True when `value` is a non-null, non-array object. */
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 /** Require a non-empty string and return it trimmed. */
