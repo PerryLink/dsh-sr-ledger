@@ -2,7 +2,7 @@
 
 **经得起复核的系统综述账本：只追加、双人筛选、PRISMA 2020、审计可验。**
 
-*记录方案、每条筛选决策（含评审人与阶段）、冲突裁决与 RoB/GRADE 评估，再推导 PRISMA 流程并导出证据表。任何冲突都不会被静默消解。*
+*记录方案、每条筛选决策（含评审人与阶段）、冲突裁决与 RoB/GRADE 评估，再推导 PRISMA 流程并导出证据表。任何事项都不会被静默消解。*
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%5E22.19%20%7C%7C%20%3E%3D24.9-brightgreen.svg)]()
@@ -13,52 +13,52 @@
 
 ## 它做什么
 
-- **`sr_init`** — 创建/修订方案（PICO、纳入/排除标准、各来源识别数、手工 PRISMA 框）并导入记录（按 DOI/PMID/arXiv/标题去重）。每次调用都是一个新修订 + 审计事件；完整修订同时追加到 `review-history.jsonl`，因此可以还原某条决策所依据的方案。
-- **`sr_screen`** — record `include`/`exclude` at `title-abstract` or `full-text`. Two reviewers disagreeing = **conflict**; only an `adjudicator` can settle it, and only when a conflict exists. Exclusions require a reason. RoB 2 / ROBINS-I / GRADE assessments attach to the same ledger.
-- **`sr_prisma`** — derive the PRISMA 2020 counts, verify the hash-chained audit log, list integrity issues, and write `prisma.json`, `prisma.md`, `evidence-table.md`, `ledger.json` under `<root>/exports`.
+- **`sr_init`** —— 创建/修订方案（PICO、纳入/排除标准、各来源的识别数、手工 PRISMA 框），并导入记录（按 DOI/PMID/arXiv/标题去重）。每次调用都会产生一个新修订和一个审计事件；完整修订还会追加到 `review-history.jsonl`，因此某条决策所依据的标准始终可以还原。
+- **`sr_screen`** —— 在 `title-abstract` 或 `full-text` 阶段记录 `include`/`exclude`。两名评审意见不一致即构成**冲突**；只有 `adjudicator` 能裁决，而且只在冲突确实存在时才能裁决。排除必须给出理由。RoB 2 / ROBINS-I / GRADE 评估也记在同一账本中。
+- **`sr_prisma`** —— 推导 PRISMA 2020 计数，校验哈希链式审计日志，列出完整性问题，并把 `prisma.json`、`prisma.md`、`evidence-table.md`、`ledger.json` 写入 `<root>/exports`。
 
-## 它做什么 not do
+## 它不做什么
 
-- **No searching or retrieval.** Import records from paper-search / Zotero / PubMed exports.
-- **No full-text reading.** Screening decisions are human judgements; the ledger records them.
-- **No meta-analysis.** Effect sizes and pooling belong to `dsh-meta-analysis`.
-- **No automatic conflict resolution.** A conflict stays open until an adjudicator acts.
-- **No risk-of-bias automation.** It stores and summarises assessments; it does not infer them from a paper.
+- **不检索、不抓取。** 记录从 paper-search / Zotero / PubMed 的导出文件导入。
+- **不阅读全文。** 筛选决策由人判断，账本只负责记录。
+- **不做 meta 分析。** 效应量与合并属于 `dsh-meta-analysis`。
+- **不自动消解冲突。** 冲突会一直保持开启，直到裁决人处理。
+- **不自动做偏倚风险评估。** 它只存储并汇总评估结果，不从论文中推断。
 
 ## PRISMA 计数框
 
-| Box | Source |
+| 计数框 | 来源 |
 |---|---|
-| Records identified | `identification` per source (manual; fallback = imported records, labelled in the report) |
-| Duplicates removed | `manual.duplicatesRemoved` |
-| Records screened | identified − duplicates |
-| Excluded at title/abstract | derived from final decisions |
-| Reports sought for retrieval | final TA includes |
-| Reports not retrieved | `manual.recordsNotRetrieved` |
-| Assessed for eligibility | sought − not retrieved |
-| Excluded at full text (+ reasons) | derived; reasons required |
-| Studies included | final full-text includes |
-| Reports of included studies | `manual.reportsOfIncludedStudies` (default = included) |
+| 识别到的记录 | 各来源的 `identification`（手工填写；回退值 = 导入的记录，并在报告中标注） |
+| 去除的重复记录 | `manual.duplicatesRemoved` |
+| 筛选的记录 | 识别数 − 重复数 |
+| 题名/摘要阶段排除 | 由最终决策推导 |
+| 拟获取全文的报告 | 最终 title-abstract 阶段纳入 |
+| 未获取到全文的报告 | `manual.recordsNotRetrieved` |
+| 进入合格性评估的报告 | 拟获取数 − 未获取数 |
+| 全文阶段排除（+ 理由） | 推导得出；必须给出理由 |
+| 纳入的研究 | 全文阶段最终纳入 |
+| 纳入研究的报告 | `manual.reportsOfIncludedStudies`（默认 = 纳入数） |
 
 ## 完整性问题（从不隐藏）
 
-`unknown_record`, `exclude_without_reason`, `adjudication_without_conflict`, `duplicate_decision`, `full_text_without_ta_include`, `open_conflicts`, `identification_counts_missing`, `no_records`, `included_without_assessment`, `assessment_of_excluded` — plus audit-chain failures from `sr_prisma.integrity`. Errors make the export honest; warnings are surfaced in the Markdown.
+`unknown_record`、`exclude_without_reason`、`adjudication_without_conflict`、`duplicate_decision`、`full_text_without_ta_include`、`open_conflicts`、`identification_counts_missing`、`no_records`、`included_without_assessment`、`assessment_of_excluded` —— 以及来自 `sr_prisma.integrity` 的审计链失败。error 会让导出保持诚实；warning 会在 Markdown 中呈现。
 
 ## 工具
 
 ### `sr_init`
 
-`{ title?, pico?, criteria?, identification?, manual?, records? }` → `{ ok, review, imported: {added, skipped}, recordCount }`.
+`{ title?, pico?, criteria?, identification?, manual?, records? }` → `{ ok, review, imported: {added, skipped}, recordCount }`。
 
 ### `sr_screen`
 
-`{ recordId, reviewer, stage, decision, reason?, role?, assessment? }` → `{ ok, state, openConflicts, assessment? }`.
+`{ recordId, reviewer, stage, decision, reason?, role?, assessment? }` → `{ ok, state, openConflicts, assessment? }`。
 
 ### `sr_prisma`
 
-`{}` → `{ ok, counts, issues, robSummary, integrity, exports }`.
+`{}` → `{ ok, counts, issues, robSummary, integrity, exports }`。
 
-### Error codes
+### 错误码
 
 `INVALID_INPUT` · `NOT_INITIALIZED` · `RECORD_UNKNOWN` · `NO_CONFLICT` · `IO`
 
@@ -66,10 +66,10 @@
 
 | | |
 |---|---|
-| DeepSeek Harness | **`dsh-v0.2.1-rc.5`** (verified 2026-11-08); peer `>=0.2.1-0 <0.3.0 \|\| >=0.2.2-0 <0.3.0` |
-| Node | `^22.19.0 \|\| >=24.9.0` (tested `24.22.1`), ESM only |
-| Peers | `@perrylink/dsh-research-core ^0.1.0`, `@deepseek-ai/cordis ^4.0.5-alpha.1`, `@deepseek-ai/dsh-tools`, `@deepseek-ai/schemastery ^3.18.5-alpha.1` |
-| Runtime dependencies | **zero** |
+| DeepSeek Harness | **`dsh-v0.2.1-rc.5`**（2026-11-08 实测）；peer `>=0.2.1-0 <0.3.0 \|\| >=0.2.2-0 <0.3.0` |
+| Node | `^22.19.0 \|\| >=24.9.0`（实测 `24.22.1`），仅 ESM |
+| Peer 依赖 | `@perrylink/dsh-research-core ^0.1.0`、`@deepseek-ai/cordis ^4.0.5-alpha.1`、`@deepseek-ai/dsh-tools`、`@deepseek-ai/schemastery ^3.18.5-alpha.1` |
+| 运行时依赖 | **零** |
 
 ```sh
 dsh plugin --profile <name> add @perrylink/dsh-research-core dsh-sr-ledger
@@ -78,31 +78,31 @@ dsh --profile <name> --dump-config | grep dsh-sr-ledger
 
 ## 配置
 
-| Key | Default | Meaning |
+| 键 | 默认值 | 含义 |
 |---|---|---|
-| `enabled` | `true` | `false` mounts nothing |
+| `enabled` | `true` | `false` 时不挂载任何内容 |
 | `root` | `.sr-ledger` | 账本根目录（`review.json`、`review-history.jsonl`、各 journal、`exports/`） |
 
 ## 安全边界
 
-- Local only: no network calls, no telemetry.
-- 只追加 journal；每次方案修订先写入 `review-history.jsonl`，再更新 `review.json`。
-- Audit events are hash-chained with the REP core helpers; `sr_prisma` verifies the chain.
-- No PII handling beyond reviewer names the user supplies (use identifiers, not personal data).
+- 仅本地运行：不发起网络请求，不上报遥测。
+- 只追加 journal；每次方案修订都先保存到 `review-history.jsonl`，再更新 `review.json`。
+- 审计事件使用 REP 核心的辅助函数做哈希链；`sr_prisma` 会校验该链。
+- 除用户提供的评审人姓名外，不处理任何个人身份信息（请使用标识符，不要使用个人数据）。
 
 ## 评测
 
-**16 tests**: protocol revision, full revision history and dedupe, invalid-record rejection, dual-screening conflict creation, adjudication-only resolution, exclusion-reason enforcement, adjudication-without-conflict rejection, unknown-record rejection, atomic rejection of an invalid assessment/role, RoB/GRADE recording, PRISMA count derivation, export bundle contents, audit-chain tamper detection, IO mapping, tool schemas and end-to-end execution, package contract.
+**16 个测试**：方案修订、完整修订历史与去重、拒绝非法记录、双人筛选产生冲突、冲突只能由裁决消解、强制排除理由、拒绝无冲突的裁决、拒绝未知记录、非法评估/角色会被原子性拒绝、RoB/GRADE 记录、PRISMA 计数推导、导出包内容、审计链篡改检测、IO 映射、工具 schema 与端到端执行、包契约。
 
-No benchmark is claimed: the ledger is bookkeeping with explicit invariants, not a detector. The invariants are the tests.
+不声称基准测试结果：这个账本是一套带显式不变量的记账机制，不是检测器。这些不变量就是测试。
 
 ## 已知限制（v0.1）
 
-- One review per `root`; multiple reviews need multiple profile configs or roots.
-- `identification` counts are manual; the plugin does not search.
-- No PRISMA-for-individual-studies variant, no forest plots, no GRADE evidence-profile tables.
-- Reviewer identity is whatever the caller supplies; there is no authentication.
+- 每个 `root` 只支持一个综述；多个综述需要多份 profile 配置或多个 root。
+- `identification` 计数需手工填写；插件不执行检索。
+- 不支持 PRISMA-for-individual-studies 变体，不生成森林图，也不生成 GRADE 证据概要表。
+- 评审人身份完全由调用方提供；没有身份认证。
 
 ## 许可
 
-Apache-2.0. No third-party runtime code.
+Apache-2.0。运行时不含第三方代码。
