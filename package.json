@@ -1,8 +1,8 @@
 {
   "name": "dsh-sr-ledger",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Systematic-review ledger for DeepSeek Harness: PRISMA 2020 protocol revisions, imported records, dual screening with explicit conflict adjudication, RoB 2 / ROBINS-I / GRADE assessments, derived PRISMA counts with integrity issues, and an export bundle (prisma.json/md, evidence-table.md, ledger.json) backed by a hash-chained append-only journal.",
-  "author": "dsh-statcheck contributors",
+  "author": "PerryLink contributors",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/PerryLink/dsh-sr-ledger.git"
@@ -29,7 +29,9 @@
     "CHANGELOG.md",
     "README.md",
     "README-zh.md",
-    "LICENSE"
+    "LICENSE",
+    "SECURITY.md",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "sideEffects": false,
   "dsh": {
