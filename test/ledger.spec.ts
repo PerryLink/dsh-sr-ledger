@@ -4,7 +4,7 @@
  * @module test/ledger.spec
  */
 
-import { appendFile, mkdtemp, readFile, rm } from 'node:fs/promises'
+import { appendFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -69,7 +69,7 @@ describe('init', () => {
     const rt = runtime()
     await rt.init({ title: 'First protocol', criteria: { include: ['RCT'], exclude: ['animal'] } })
     await rt.init({ title: 'Second protocol' })
-    const history = await rt.ledger().reviewHistory()
+    const history = (await rt.ledger().reviewHistory()).map(line => line.spec)
     expect(history).toHaveLength(2)
     expect(history[0]?.title).toBe('First protocol')
     expect(history[0]?.criteria).toEqual({ include: ['RCT'], exclude: ['animal'] })
@@ -170,6 +170,24 @@ describe('prisma', () => {
     const table = await readFile(path.join(root, 'exports', 'evidence-table.md'), 'utf8')
     expect(table).toContain('Study two')
     expect(table).toContain('GRADE')
+  })
+
+  it('hash-chains protocol revisions and detects tampering', async () => {
+    const rt = runtime()
+    await seed(rt)
+    await rt.init({ title: 'Fixture review', criteria: { include: ['RCT'], exclude: ['animal'] } })
+    const history = await rt.ledger().reviewHistory()
+    expect(history).toHaveLength(2)
+    expect(history[0]!.prevHash).toBeNull()
+    expect(history[1]!.prevHash).toBe(history[0]!.hash)
+    expect((await rt.prisma()).integrity.ok).toBe(true)
+    const lines = (await readFile(path.join(root, 'review-history.jsonl'), 'utf8')).trim().split('\n')
+    const tampered = JSON.parse(lines[1]!) as { spec: { title: string } }
+    tampered.spec.title = 'Tampered'
+    lines[1] = JSON.stringify(tampered)
+    await writeFile(path.join(root, 'review-history.jsonl'), `${lines.join('\n')}\n`, 'utf8')
+    const broken = await rt.prisma()
+    expect(broken.integrity.ok).toBe(false)
   })
 
   it('reports a broken audit chain instead of hiding it', async () => {

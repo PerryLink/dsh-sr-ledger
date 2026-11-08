@@ -12,7 +12,7 @@
 
 import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import { createAuditEvent, stableId, verifyAuditChain, type AuditEvent } from '@perrylink/dsh-research-core'
+import { canonicalJson, createAuditEvent, sha256Hex, stableId, verifyAuditChain, type AuditEvent } from '@perrylink/dsh-research-core'
 
 /** Screening stages in PRISMA order. */
 export type ScreenStage = 'title-abstract' | 'full-text'
@@ -62,6 +62,13 @@ export interface ReviewSpec {
   readonly updatedAt: string
   /** Monotonic protocol revision (each sr_init call bumps it). */
   readonly revision: number
+}
+
+/** One hash-chained protocol revision. */
+export interface ReviewHistoryLine {
+  readonly spec: ReviewSpec
+  readonly prevHash: string | null
+  readonly hash: string
 }
 
 /** An imported record. */
@@ -161,11 +168,6 @@ export class SrLedger {
     return readJson<ReviewSpec>(this.paths.review)
   }
 
-  /** Read every protocol revision, oldest first. */
-  async reviewHistory(): Promise<ReviewSpec[]> {
-    return readJsonl<ReviewSpec>(this.paths.reviewHistory)
-  }
-
   /** Read imported records. */
   async records(): Promise<ImportedRecord[]> {
     return readJsonl<ImportedRecord>(this.paths.records)
@@ -179,6 +181,11 @@ export class SrLedger {
   /** Read assessments. */
   async assessments(): Promise<AssessmentLine[]> {
     return readJsonl<AssessmentLine>(this.paths.assessments)
+  }
+
+  /** Read the hash-chained protocol history. */
+  async reviewHistory(): Promise<ReviewHistoryLine[]> {
+    return readJsonl<ReviewHistoryLine>(this.paths.reviewHistory)
   }
 
   /** Read the audit chain. */
@@ -241,7 +248,10 @@ export class SrLedger {
     // Preserve the full protocol revision before making it current: the audit
     // event only carries identity, so review-history.jsonl is what lets a
     // reviewer reconstruct the criteria a decision was made under.
-    await appendFile(this.paths.reviewHistory, `${JSON.stringify(spec)}\n`, 'utf8')
+    const history = await this.reviewHistory()
+    const prevHash = history.at(-1)?.hash ?? null
+    const hash = sha256Hex(canonicalJson({ spec, prevHash }))
+    await appendFile(this.paths.reviewHistory, `${JSON.stringify({ spec, prevHash, hash })}\n`, 'utf8')
     await writeFile(this.paths.review, `${JSON.stringify(spec, null, 2)}\n`, 'utf8')
     await this.#audit('sr.protocol', { reviewId: spec.reviewId, revision: spec.revision, title: spec.title })
   }
@@ -299,6 +309,14 @@ export class SrLedger {
   async integrity(): Promise<{ ok: boolean; issues: string[]; events: number }> {
     const events = await this.audit()
     const issues = verifyAuditChain(events).map(issue => `${issue.code} at ${issue.index}: ${issue.message}`)
+    let expectedPrev: string | null = null
+    const history = await this.reviewHistory()
+    for (const [index, line] of history.entries()) {
+      if (line.prevHash !== expectedPrev) issues.push(`review-history at ${index}: prevHash does not chain (expected ${String(expectedPrev)}, got ${String(line.prevHash)})`)
+      const hash = sha256Hex(canonicalJson({ spec: line.spec, prevHash: line.prevHash }))
+      if (hash !== line.hash) issues.push(`review-history at ${index}: hash mismatch (revision ${line.spec.revision})`)
+      expectedPrev = line.hash
+    }
     return { ok: issues.length === 0, issues, events: events.length }
   }
 
