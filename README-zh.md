@@ -13,7 +13,7 @@
 
 ## 它做什么
 
-- **`sr_init`** — create/revise the protocol (PICO, include/exclude criteria, per-source identification counts, manual PRISMA boxes) and import records (deduplicated by DOI/PMID/arXiv/title). Every call is a new revision plus an audit event.
+- **`sr_init`** — 创建/修订方案（PICO、纳入/排除标准、各来源识别数、手工 PRISMA 框）并导入记录（按 DOI/PMID/arXiv/标题去重）。每次调用都是一个新修订 + 审计事件；完整修订同时追加到 `review-history.jsonl`，因此可以还原某条决策所依据的方案。
 - **`sr_screen`** — record `include`/`exclude` at `title-abstract` or `full-text`. Two reviewers disagreeing = **conflict**; only an `adjudicator` can settle it, and only when a conflict exists. Exclusions require a reason. RoB 2 / ROBINS-I / GRADE assessments attach to the same ledger.
 - **`sr_prisma`** — derive the PRISMA 2020 counts, verify the hash-chained audit log, list integrity issues, and write `prisma.json`, `prisma.md`, `evidence-table.md`, `ledger.json` under `<root>/exports`.
 
@@ -81,18 +81,18 @@ dsh --profile <name> --dump-config | grep dsh-sr-ledger
 | Key | Default | Meaning |
 |---|---|---|
 | `enabled` | `true` | `false` mounts nothing |
-| `root` | `.sr-ledger` | ledger root (`review.json`, journals, `exports/`) |
+| `root` | `.sr-ledger` | 账本根目录（`review.json`、`review-history.jsonl`、各 journal、`exports/`） |
 
 ## 安全边界
 
 - Local only: no network calls, no telemetry.
-- Append-only journals; the protocol is revised, never overwritten silently.
+- 只追加 journal；每次方案修订先写入 `review-history.jsonl`，再更新 `review.json`。
 - Audit events are hash-chained with the REP core helpers; `sr_prisma` verifies the chain.
 - No PII handling beyond reviewer names the user supplies (use identifiers, not personal data).
 
 ## 评测
 
-**12 tests**: protocol revision and dedupe, dual-screening conflict creation, adjudication-only resolution, exclusion-reason enforcement, adjudication-without-conflict rejection, unknown-record rejection, RoB/GRADE recording, PRISMA count derivation, export bundle contents, audit-chain tamper detection, tool schemas and end-to-end execution, package contract.
+**16 tests**: protocol revision, full revision history and dedupe, invalid-record rejection, dual-screening conflict creation, adjudication-only resolution, exclusion-reason enforcement, adjudication-without-conflict rejection, unknown-record rejection, atomic rejection of an invalid assessment/role, RoB/GRADE recording, PRISMA count derivation, export bundle contents, audit-chain tamper detection, IO mapping, tool schemas and end-to-end execution, package contract.
 
 No benchmark is claimed: the ledger is bookkeeping with explicit invariants, not a detector. The invariants are the tests.
 

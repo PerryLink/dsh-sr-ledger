@@ -59,6 +59,22 @@ describe('init', () => {
   it('requires a title on the first call', async () => {
     await expect(runtime().init({})).rejects.toMatchObject({ code: 'INVALID_INPUT' })
   })
+
+  it('rejects malformed imported records instead of crashing', async () => {
+    await expect(runtime().init({ title: 'Bad records', records: [{ title: 42 as never }] })).rejects.toMatchObject({ code: 'INVALID_INPUT' })
+    await expect(runtime().init({ title: 'Bad counts', identification: [{ source: 'PubMed', count: -1 }] })).rejects.toMatchObject({ code: 'INVALID_INPUT' })
+  })
+
+  it('keeps every full protocol revision in an append-only history', async () => {
+    const rt = runtime()
+    await rt.init({ title: 'First protocol', criteria: { include: ['RCT'], exclude: ['animal'] } })
+    await rt.init({ title: 'Second protocol' })
+    const history = await rt.ledger().reviewHistory()
+    expect(history).toHaveLength(2)
+    expect(history[0]?.title).toBe('First protocol')
+    expect(history[0]?.criteria).toEqual({ include: ['RCT'], exclude: ['animal'] })
+    expect(history[1]?.revision).toBe(2)
+  })
 })
 
 describe('screening', () => {
@@ -81,6 +97,21 @@ describe('screening', () => {
     const [first] = await seed(rt)
     await expect(rt.screen({ recordId: first!, reviewer: 'r1', stage: 'title-abstract', decision: 'include', role: 'adjudicator' })).rejects.toMatchObject({ code: 'NO_CONFLICT' })
     await expect(rt.screen({ recordId: first!, reviewer: 'r1', stage: 'title-abstract', decision: 'exclude' })).rejects.toMatchObject({ code: 'INVALID_INPUT' })
+  })
+
+  it('does not append a decision when the assessment or role is invalid', async () => {
+    const rt = runtime()
+    const [first] = await seed(rt)
+    const before = (await rt.ledger().decisions()).length
+    await expect(rt.screen({
+      recordId: first!,
+      reviewer: 'r1',
+      stage: 'title-abstract',
+      decision: 'include',
+      assessment: { tool: 'NOPE' as never, domain: 'x', judgement: 'low' },
+    })).rejects.toMatchObject({ code: 'INVALID_INPUT' })
+    await expect(rt.screen({ recordId: first!, reviewer: 'r1', stage: 'title-abstract', decision: 'include', role: 'chair' as never })).rejects.toMatchObject({ code: 'INVALID_INPUT' })
+    expect((await rt.ledger().decisions()).length).toBe(before)
   })
 
   it('records RoB/GRADE assessments', async () => {

@@ -13,7 +13,7 @@ English · [简体中文](README-zh.md)
 
 ## What it does
 
-- **`sr_init`** — create/revise the protocol (PICO, include/exclude criteria, per-source identification counts, manual PRISMA boxes) and import records (deduplicated by DOI/PMID/arXiv/title). Every call is a new revision plus an audit event.
+- **`sr_init`** — create/revise the protocol (PICO, include/exclude criteria, per-source identification counts, manual PRISMA boxes) and import records (deduplicated by DOI/PMID/arXiv/title). Every call is a new revision plus an audit event; the full revision is also appended to `review-history.jsonl`, so the criteria a decision was made under remain reconstructable.
 - **`sr_screen`** — record `include`/`exclude` at `title-abstract` or `full-text`. Two reviewers disagreeing = **conflict**; only an `adjudicator` can settle it, and only when a conflict exists. Exclusions require a reason. RoB 2 / ROBINS-I / GRADE assessments attach to the same ledger.
 - **`sr_prisma`** — derive the PRISMA 2020 counts, verify the hash-chained audit log, list integrity issues, and write `prisma.json`, `prisma.md`, `evidence-table.md`, `ledger.json` under `<root>/exports`.
 
@@ -81,18 +81,18 @@ dsh --profile <name> --dump-config | grep dsh-sr-ledger
 | Key | Default | Meaning |
 |---|---|---|
 | `enabled` | `true` | `false` mounts nothing |
-| `root` | `.sr-ledger` | ledger root (`review.json`, journals, `exports/`) |
+| `root` | `.sr-ledger` | ledger root (`review.json`, `review-history.jsonl`, journals, `exports/`) |
 
 ## Security boundaries
 
 - Local only: no network calls, no telemetry.
-- Append-only journals; the protocol is revised, never overwritten silently.
+- Append-only journals; every protocol revision is preserved in `review-history.jsonl` before `review.json` is updated.
 - Audit events are hash-chained with the REP core helpers; `sr_prisma` verifies the chain.
 - No PII handling beyond reviewer names the user supplies (use identifiers, not personal data).
 
 ## Evaluation
 
-**12 tests**: protocol revision and dedupe, dual-screening conflict creation, adjudication-only resolution, exclusion-reason enforcement, adjudication-without-conflict rejection, unknown-record rejection, RoB/GRADE recording, PRISMA count derivation, export bundle contents, audit-chain tamper detection, tool schemas and end-to-end execution, package contract.
+**16 tests**: protocol revision, full revision history and dedupe, invalid-record rejection, dual-screening conflict creation, adjudication-only resolution, exclusion-reason enforcement, adjudication-without-conflict rejection, unknown-record rejection, atomic rejection of an invalid assessment/role, RoB/GRADE recording, PRISMA count derivation, export bundle contents, audit-chain tamper detection, IO mapping, tool schemas and end-to-end execution, package contract.
 
 No benchmark is claimed: the ledger is bookkeeping with explicit invariants, not a detector. The invariants are the tests.
 

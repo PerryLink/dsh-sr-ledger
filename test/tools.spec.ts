@@ -3,7 +3,7 @@
  * @module test/tools.spec
  */
 
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -79,6 +79,15 @@ describe('tools', () => {
     const value = (await makeSrInitTool(runtime()).execute({}, EXEC)) as { ok: false; error: { code: string } }
     expect(value.ok).toBe(false)
     expect(value.error.code).toBe('INVALID_INPUT')
+  })
+
+  it('maps an unreadable ledger to IO instead of throwing through the tool', async () => {
+    const rt = runtime()
+    await rt.init({ title: 'Corrupt ledger' })
+    await writeFile(path.join(root, 'decisions.jsonl'), '{not json\n', 'utf8')
+    const value = (await makeSrPrismaTool(rt).execute({}, EXEC)) as { ok: false; error: { code: string } }
+    expect(value.ok).toBe(false)
+    expect(value.error.code).toBe('IO')
   })
 })
 

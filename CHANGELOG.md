@@ -6,6 +6,27 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `review-history.jsonl`: every full protocol revision is appended before
+  `review.json` is updated, so the criteria behind a past decision remain
+  reconstructable.
+
+### Fixed
+
+- Validate `sr_init` records/identification/manual counts and `sr_screen`
+  reviewer/stage/decision/role/assessment before any write.
+- Build and validate the assessment before appending the decision: an invalid
+  assessment no longer leaves a half-recorded screening line behind.
+- Map unexpected ledger read failures to the documented `IO` error code instead
+  of letting the tool throw.
+- Count `recordsWithoutDecision` from the imported record ids rather than
+  subtracting state rows (which included unknown-record decisions).
+
+### Changed
+
+- Test count is now 16; README/CHANGELOG list the new failure branches.
+
 ## [0.1.0] - 2026-11-08
 
 First release: the systematic-review ledger.

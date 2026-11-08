@@ -138,9 +138,10 @@ export class SrLedger {
   }
 
   /** File paths. */
-  get paths(): Record<'review' | 'records' | 'decisions' | 'assessments' | 'audit' | 'exports', string> {
+  get paths(): Record<'review' | 'reviewHistory' | 'records' | 'decisions' | 'assessments' | 'audit' | 'exports', string> {
     return {
       review: path.join(this.root, 'review.json'),
+      reviewHistory: path.join(this.root, 'review-history.jsonl'),
       records: path.join(this.root, 'records.jsonl'),
       decisions: path.join(this.root, 'decisions.jsonl'),
       assessments: path.join(this.root, 'assessments.jsonl'),
@@ -158,6 +159,11 @@ export class SrLedger {
   /** Read the protocol. */
   async review(): Promise<ReviewSpec | undefined> {
     return readJson<ReviewSpec>(this.paths.review)
+  }
+
+  /** Read every protocol revision, oldest first. */
+  async reviewHistory(): Promise<ReviewSpec[]> {
+    return readJsonl<ReviewSpec>(this.paths.reviewHistory)
   }
 
   /** Read imported records. */
@@ -232,6 +238,10 @@ export class SrLedger {
    */
   async writeReview(spec: ReviewSpec): Promise<void> {
     await this.ensure()
+    // Preserve the full protocol revision before making it current: the audit
+    // event only carries identity, so review-history.jsonl is what lets a
+    // reviewer reconstruct the criteria a decision was made under.
+    await appendFile(this.paths.reviewHistory, `${JSON.stringify(spec)}\n`, 'utf8')
     await writeFile(this.paths.review, `${JSON.stringify(spec, null, 2)}\n`, 'utf8')
     await this.#audit('sr.protocol', { reviewId: spec.reviewId, revision: spec.revision, title: spec.title })
   }

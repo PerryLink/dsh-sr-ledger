@@ -67,7 +67,7 @@ export function makeSrScreenTool(runtime: SrRuntime) {
         }
       } catch (error) {
         if (error instanceof SrError) return { ok: false as const, error: { code: error.code, message: error.message } }
-        throw error
+        return { ok: false as const, error: { code: 'IO', message: error instanceof Error ? error.message : String(error) } }
       }
     },
   })

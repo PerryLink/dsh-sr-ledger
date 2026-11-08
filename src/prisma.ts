@@ -120,6 +120,7 @@ export function computePrisma(
   if (!identifiedManual) issues.push({ code: 'identification_counts_missing', severity: 'warning', detail: 'no per-source identification counts; PRISMA identification falls back to the imported record count' })
   if (records.length === 0) issues.push({ code: 'no_records', severity: 'warning', detail: 'no records have been imported' })
 
+  const screenedIds = new Set(ta.map(state => state.recordId))
   const includedIds = new Set(ft.filter(state => state.final === 'include').map(state => state.recordId))
   const assessedIds = new Set(assessments.map(line => line.recordId))
   for (const recordId of includedIds) {
@@ -150,7 +151,7 @@ export function computePrisma(
       included,
       reportsOfIncludedStudies: review.manual?.reportsOfIncludedStudies ?? included,
       conflicts: unresolved,
-      recordsWithoutDecision: Math.max(0, records.length - ta.length),
+      recordsWithoutDecision: records.filter(record => !screenedIds.has(record.recordId)).length,
     },
     states,
     issues,
