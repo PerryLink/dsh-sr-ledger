@@ -1,6 +1,6 @@
 {
   "name": "dsh-sr-ledger",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Systematic-review ledger for DeepSeek Harness: PRISMA 2020 protocol revisions, imported records, dual screening with explicit conflict adjudication, RoB 2 / ROBINS-I / GRADE assessments, derived PRISMA counts with integrity issues, and an export bundle (prisma.json/md, evidence-table.md, ledger.json) backed by a hash-chained append-only journal.",
   "author": "PerryLink contributors",
   "repository": {

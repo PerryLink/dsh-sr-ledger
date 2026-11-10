@@ -14,6 +14,7 @@
 ## 它做什么
 
 - **`sr_init`** —— 创建/修订方案（PICO、纳入/排除标准、各来源的识别数、手工 PRISMA 框），并导入记录（按 DOI/PMID/arXiv/标题去重）。每次调用都会产生一个新修订和一个审计事件；完整修订还会追加到 `review-history.jsonl`，因此某条决策所依据的标准始终可以还原。
+- **`sr_import`** —— 导入 RIS / BibTeX / CSL-JSON / CSV 导出（内联内容或 `ctx.fs` 路径）。解析出的记录走同一条 `sr_init` 路径，因此去重、修订号与审计行为完全一致。没有标题的条目会被跳过并计数；它不检索、不抓取。
 - **`sr_screen`** —— 在 `title-abstract` 或 `full-text` 阶段记录 `include`/`exclude`。两名评审意见不一致即构成**冲突**；只有 `adjudicator` 能裁决，而且只在冲突确实存在时才能裁决。排除必须给出理由。RoB 2 / ROBINS-I / GRADE 评估也记在同一账本中。
 - **`sr_prisma`** —— 推导 PRISMA 2020 计数，校验哈希链式审计日志，列出完整性问题，并把 `prisma.json`、`prisma.md`、`evidence-table.md`、`ledger.json` 写入 `<root>/exports`。
 
@@ -49,6 +50,10 @@
 ### `sr_init`
 
 `{ title?, pico?, criteria?, identification?, manual?, records? }` → `{ ok, review, imported: {added, skipped}, recordCount }`。
+
+### `sr_import`
+
+`{ content | path, format?, title?, identification?, manual? }`。`format` 默认自动识别（`ris` / `bibtex` / `csl-json` / `csv`）；`path` 需要 `ctx.fs`。返回 `{ ok, format, parsed, skipped, imported: { added, skipped }, recordCount, warnings, review }`。整份文件都没有可用标题时以 `EMPTY_IMPORT` 失败，而不是静默导入 0 条。
 
 ### `sr_screen`
 

@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-11-10
+
+### Added
+
+- `sr_import`: import RIS, BibTeX, CSL-JSON or CSV reference exports through the
+  same `sr_init` path (dedupe, revision bump, hash-chained audit). Format is
+  detected by default; `path` reads through `ctx.fs` when mounted. Titleless
+  entries are skipped and counted; an all-skipped file fails as `EMPTY_IMPORT`.
 ## [0.1.2] - 2026-11-08
 
 ### Fixed

@@ -14,6 +14,7 @@ English · [简体中文](README-zh.md)
 ## What it does
 
 - **`sr_init`** — create/revise the protocol (PICO, include/exclude criteria, per-source identification counts, manual PRISMA boxes) and import records (deduplicated by DOI/PMID/arXiv/title). Every call is a new revision plus an audit event; the full revision is also appended to `review-history.jsonl`, so the criteria a decision was made under remain reconstructable.
+- **`sr_import`** — import RIS / BibTeX / CSL-JSON / CSV exports (inline content or a `ctx.fs` path). Parsed records go through the same `sr_init` path, so dedupe, revision bump and audit behave identically. Entries without a title are skipped and counted; it never searches or fetches.
 - **`sr_screen`** — record `include`/`exclude` at `title-abstract` or `full-text`. Two reviewers disagreeing = **conflict**; only an `adjudicator` can settle it, and only when a conflict exists. Exclusions require a reason. RoB 2 / ROBINS-I / GRADE assessments attach to the same ledger.
 - **`sr_prisma`** — derive the PRISMA 2020 counts, verify the hash-chained audit log, list integrity issues, and write `prisma.json`, `prisma.md`, `evidence-table.md`, `ledger.json` under `<root>/exports`.
 
@@ -49,6 +50,10 @@ English · [简体中文](README-zh.md)
 ### `sr_init`
 
 `{ title?, pico?, criteria?, identification?, manual?, records? }` → `{ ok, review, imported: {added, skipped}, recordCount }`.
+
+### `sr_import`
+
+`{ content | path, format?, title?, identification?, manual? }`. `format` defaults to detection (`ris` / `bibtex` / `csl-json` / `csv`); `path` needs `ctx.fs`. Returns `{ ok, format, parsed, skipped, imported: { added, skipped }, recordCount, warnings, review }`. A file with no usable title fails as `EMPTY_IMPORT` instead of importing nothing silently.
 
 ### `sr_screen`
 

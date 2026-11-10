@@ -9,6 +9,7 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { resolveConfig } from '../src/config.ts'
 import { SrRuntime } from '../src/runtime.ts'
+import { makeSrImportTool } from '../src/tools/sr-import.ts'
 import { makeSrInitTool } from '../src/tools/sr-init.ts'
 import { makeSrPrismaTool } from '../src/tools/sr-prisma.ts'
 import { makeSrScreenTool } from '../src/tools/sr-screen.ts'
@@ -36,6 +37,7 @@ describe('tools', () => {
   it('declares names and schemas', () => {
     for (const [tool, name] of [
       [makeSrInitTool(runtime()), 'sr_init'],
+      [makeSrImportTool(runtime(), { get: () => undefined } as never), 'sr_import'],
       [makeSrScreenTool(runtime()), 'sr_screen'],
       [makeSrPrismaTool(runtime()), 'sr_prisma'],
     ] as const) {
@@ -73,6 +75,71 @@ describe('tools', () => {
     expect(value.counts.soughtForRetrieval).toBe(1)
     const markdown = await readFile(path.join(root, value.exports.prismaMarkdown), 'utf8')
     expect(markdown).toContain('PRISMA 2020 flow')
+  })
+
+
+  it('imports RIS through sr_init, dedupes on re-import and reports skipped entries', async () => {
+    const tool = makeSrImportTool(runtime(), { get: () => undefined } as never)
+    const content = [
+      'TY  - JOUR',
+      'AU  - Doe, Jane',
+      'TI  - A study of things',
+      'PY  - 2020',
+      'DO  - 10.1000/xyz',
+      'ER  -',
+      '',
+      'TY  - JOUR',
+      'AU  - Nobody',
+      'ER  -',
+      '',
+    ].join('\n')
+    const first = (await tool.execute({ content, title: 'Import review', identification: [{ source: 'Zotero', count: 2 }] }, EXEC)) as {
+      ok: true
+      format: string
+      parsed: number
+      skipped: number
+      imported: { added: number; skipped: number }
+      recordCount: number
+      review: { revision: number }
+    }
+    expect(first.ok).toBe(true)
+    expect(first.format).toBe('ris')
+    expect(first.parsed).toBe(1)
+    expect(first.skipped).toBe(1)
+    expect(first.imported.added).toBe(1)
+    expect(first.recordCount).toBe(1)
+    expect(first.review.revision).toBe(1)
+
+    const second = (await tool.execute({ content }, EXEC)) as {
+      ok: true
+      imported: { added: number; skipped: number }
+      recordCount: number
+    }
+    expect(second.ok).toBe(true)
+    expect(second.imported.added).toBe(0)
+    expect(second.imported.skipped).toBe(1)
+    expect(second.recordCount).toBe(1)
+
+    const text = (tool.output.render({}, first as never) as Array<{ text: string }>)[0]?.text ?? ''
+    expect(text).toContain('sr_import (ris)')
+    expect(text).toContain('skipped 1')
+  })
+
+  it('imports BibTeX explicitly and fails loud on an empty file', async () => {
+    const tool = makeSrImportTool(runtime(), { get: () => undefined } as never)
+    const bibtex = '@article{k, title = {Bib title}, doi = {10.1000/bib}}'
+    const imported = (await tool.execute({ content: bibtex, format: 'bibtex', title: 'Bib review' }, EXEC)) as {
+      ok: true
+      format: string
+      imported: { added: number }
+    }
+    expect(imported.ok).toBe(true)
+    expect(imported.format).toBe('bibtex')
+    expect(imported.imported.added).toBe(1)
+
+    const empty = (await tool.execute({ content: 'TY  - JOUR\nER  -\n', format: 'ris' }, EXEC)) as { ok: false; error: { code: string } }
+    expect(empty.ok).toBe(false)
+    expect(empty.error.code).toBe('EMPTY_IMPORT')
   })
 
   it('failure branch carries a stable code', async () => {

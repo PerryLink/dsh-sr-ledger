@@ -3,7 +3,7 @@
  * records, dual screening with adjudication, RoB/GRADE assessments, PRISMA 2020
  * counts and an audit-verifiable export bundle.
  *
- * Three tools: sr_init, sr_screen, sr_prisma. Append-only; nothing is silently
+ * Four tools: sr_init, sr_import, sr_screen, sr_prisma. Append-only; nothing is silently
  * resolved or overwritten.
  *
  * Function plugin — no default export.
@@ -13,6 +13,7 @@
 import type { Context } from '@deepseek-ai/cordis'
 import { Config, resolveConfig, type Config as ConfigShape } from './config.ts'
 import { SrRuntime } from './runtime.ts'
+import { makeSrImportTool } from './tools/sr-import.ts'
 import { makeSrInitTool } from './tools/sr-init.ts'
 import { makeSrPrismaTool } from './tools/sr-prisma.ts'
 import { makeSrScreenTool } from './tools/sr-screen.ts'
@@ -33,12 +34,16 @@ export { computePrisma, renderEvidenceTable, renderPrismaMarkdown } from './pris
 export type { LedgerIssue, PrismaCounts, PrismaResult } from './prisma.ts'
 export { SrError, SrRuntime } from './runtime.ts'
 export type { InitRequest, InitResult, PrismaExport, ScreenRequest, ScreenResult, SrErrorCode, SrRuntimeOptions } from './runtime.ts'
+export { makeSrImportTool } from './tools/sr-import.ts'
+export type { SrImportFailure, SrImportValue } from './tools/sr-import.ts'
+export { detectFormat, ImportError, parseBibtex, parseCslJson, parseCsv, parseImport, parseRis } from './import.ts'
+export type { ImportFormat, ImportParseResult, ImportRecord } from './import.ts'
 export { makeSrInitTool } from './tools/sr-init.ts'
 export { makeSrScreenTool } from './tools/sr-screen.ts'
 export { makeSrPrismaTool } from './tools/sr-prisma.ts'
 
 /**
- * Mount the three tools.
+ * Mount the four tools.
  * @param ctx - the plugin context (host).
  * @param config - raw plugin config.
  */
@@ -51,6 +56,7 @@ export function apply(ctx: Context, config: ConfigShape): void {
   }
   const runtime = new SrRuntime({ config: resolved })
   ctx.effect(() => ctx.tools.register(makeSrInitTool(runtime)), 'sr-ledger: sr_init tool')
+  ctx.effect(() => ctx.tools.register(makeSrImportTool(runtime, ctx)), 'sr-ledger: sr_import tool')
   ctx.effect(() => ctx.tools.register(makeSrScreenTool(runtime)), 'sr-ledger: sr_screen tool')
   ctx.effect(() => ctx.tools.register(makeSrPrismaTool(runtime)), 'sr-ledger: sr_prisma tool')
 }
