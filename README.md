@@ -119,7 +119,7 @@ dsh --profile <name> --dump-config | grep dsh-sr-ledger
 *Animated: the real `pnpm exec vitest run test/ledger.spec.ts` output on 2026-11-21 — the ledger invariants spec, one of the four spec files in this repository. Pass markers and timings are omitted; the case names and the summary lines are verbatim.*
 
 
-**16 tests**: protocol revision, full revision history and dedupe, invalid-record rejection, dual-screening conflict creation, adjudication-only resolution, exclusion-reason enforcement, adjudication-without-conflict rejection, unknown-record rejection, atomic rejection of an invalid assessment/role, RoB/GRADE recording, PRISMA count derivation, export bundle contents, audit-chain tamper detection, IO mapping, tool schemas and end-to-end execution, package contract.
+**27 tests**: protocol revision, full revision history and dedupe, invalid-record rejection, dual-screening conflict creation, adjudication-only resolution, exclusion-reason enforcement, adjudication-without-conflict rejection, unknown-record rejection, atomic rejection of an invalid assessment/role, RoB/GRADE recording, PRISMA count derivation, export bundle contents, audit-chain tamper detection, IO mapping, tool schemas and end-to-end execution, package contract.
 
 No benchmark is claimed: the ledger is bookkeeping with explicit invariants, not a detector. The invariants are the tests.
 

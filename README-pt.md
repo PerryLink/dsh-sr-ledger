@@ -118,7 +118,7 @@ dsh --profile <name> --dump-config | grep dsh-sr-ledger
 
 *Animado: a saída real de `pnpm exec vitest run test/ledger.spec.ts` em 2026-11-21 — o spec de invariantes do registro, um dos quatro arquivos de spec deste repositório. Marcadores de aprovação e tempos foram omitidos; os nomes dos casos e as linhas de resumo são literais.*
 
-**16 testes**: revisão do protocolo, histórico completo de revisões e deduplicação, rejeição de registros inválidos, criação de conflito de dupla triagem, resolução apenas por adjudicação, exigência de motivo de exclusão, rejeição de adjudicação sem conflito, rejeição de registros desconhecidos, rejeição atômica de avaliação/papel inválidos, registro RoB/GRADE, derivação de contagens PRISMA, conteúdo do pacote de exportação, detecção de adulteração da cadeia de auditoria, mapeamento de IO, esquemas de ferramentas e execução de ponta a ponta, contrato do pacote.
+**27 testes**: revisão do protocolo, histórico completo de revisões e deduplicação, rejeição de registros inválidos, criação de conflito de dupla triagem, resolução apenas por adjudicação, exigência de motivo de exclusão, rejeição de adjudicação sem conflito, rejeição de registros desconhecidos, rejeição atômica de avaliação/papel inválidos, registro RoB/GRADE, derivação de contagens PRISMA, conteúdo do pacote de exportação, detecção de adulteração da cadeia de auditoria, mapeamento de IO, esquemas de ferramentas e execução de ponta a ponta, contrato do pacote.
 
 Nenhum benchmark é alegado: o registro é contabilidade com invariantes explícitos, não um detector. Os invariantes são os testes.
 
