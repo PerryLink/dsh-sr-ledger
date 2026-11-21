@@ -1,13 +1,22 @@
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dsh-sr-ledger-hero-zh-dark.webp">
+  <img src="docs/assets/dsh-sr-ledger-hero-zh-light.webp" width="100%" alt="dsh-sr-ledger 配图：一个四条记录的综述——PubMed 10 加 Embase 4 共识别 14 条，去重 4 条后筛选 10 条，最终纳入 1 项研究；PRISMA 2020 计数全部由只追加的决策账本推导">
+</picture>
+
 # dsh-sr-ledger
 
 **经得起复核的系统综述账本：只追加、双人筛选、PRISMA 2020、审计可验。**
 
 *记录方案、每条筛选决策（含评审人与阶段）、冲突裁决与 RoB/GRADE 评估，再推导 PRISMA 流程并导出证据表。任何事项都不会被静默消解。*
 
+[English](README.md) · [Español](README-es.md) · [Português](README-pt.md) · [हिन्दी](README-hi.md)
+
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%5E22.19%20%7C%7C%20%3E%3D24.9-brightgreen.svg)]()
 
-[English](README.md) · 简体中文
+</div>
 
 ---
 
@@ -17,6 +26,14 @@
 - **`sr_import`** —— 导入 RIS / BibTeX / CSL-JSON / CSV 导出（内联内容或 `ctx.fs` 路径）。解析出的记录走同一条 `sr_init` 路径，因此去重、修订号与审计行为完全一致。没有标题的条目会被跳过并计数；它不检索、不抓取。
 - **`sr_screen`** —— 在 `title-abstract` 或 `full-text` 阶段记录 `include`/`exclude`。两名评审意见不一致即构成**冲突**；只有 `adjudicator` 能裁决，而且只在冲突确实存在时才能裁决。排除必须给出理由。RoB 2 / ROBINS-I / GRADE 评估也记在同一账本中。
 - **`sr_prisma`** —— 推导 PRISMA 2020 计数，校验哈希链式审计日志，列出完整性问题，并把 `prisma.json`、`prisma.md`、`evidence-table.md`、`ledger.json` 写入 `<root>/exports`。
+
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dsh-sr-ledger-flow-v5-dark.svg">
+  <img src="docs/assets/dsh-sr-ledger-flow-v5-light.svg" width="100%" alt="dsh-sr-ledger 结构图：sr_init 写入方案修订，sr_screen 记录双人筛选并把冲突保持开启交给裁决人，sr_prisma 推导 PRISMA 2020 计数并写出 prisma.json、prisma.md、evidence-table.md 与 ledger.json">
+</picture>
+
+*结构：方案 → 筛选 → 推导；`counts` 与 `integrity` 是两条输出，冲突在裁决人处理前一直开启，每次方案修订都做哈希链接。图内只有真实的工具名、字段名与导出文件名，五语共用同一张结构图。*
 
 ## 它不做什么
 
@@ -96,6 +113,11 @@ dsh --profile <name> --dump-config | grep dsh-sr-ledger
 - 除用户提供的评审人姓名外，不处理任何个人身份信息（请使用标识符，不要使用个人数据）。
 
 ## 评测
+
+![dsh-sr-ledger 评测：账本 spec 的真实 verbose 运行——12 个用例覆盖方案修订、双人筛选冲突、只能由裁决消解、PRISMA 推导与审计链篡改检测](docs/assets/dsh-sr-ledger-demo.gif)
+
+*动图是 2026-11-21 真实运行的 `pnpm exec vitest run test/ledger.spec.ts` 输出——账本不变量 spec，本仓库四个 spec 文件之一。通过标记与耗时已省略；用例名与汇总行均为原样。*
+
 
 **16 个测试**：方案修订、完整修订历史与去重、拒绝非法记录、双人筛选产生冲突、冲突只能由裁决消解、强制排除理由、拒绝无冲突的裁决、拒绝未知记录、非法评估/角色会被原子性拒绝、RoB/GRADE 记录、PRISMA 计数推导、导出包内容、审计链篡改检测、IO 映射、工具 schema 与端到端执行、包契约。
 

@@ -1,13 +1,22 @@
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dsh-sr-ledger-hero-en-dark.webp">
+  <img src="docs/assets/dsh-sr-ledger-hero-en-light.webp" width="100%" alt="dsh-sr-ledger: a four-record review where PubMed 10 plus Embase 4 are identified, 4 duplicates leave 10 screened and 1 study is included — the PRISMA 2020 counts derived from the append-only decision ledger">
+</picture>
+
 # dsh-sr-ledger
 
 **A systematic-review ledger that survives review: append-only, dual-screened, PRISMA 2020, audit-verifiable.**
 
 *Records the protocol, every screening decision with reviewer and stage, conflict adjudications and RoB/GRADE assessments — then derives the PRISMA flow and exports the evidence table. Nothing is silently resolved.*
 
+[简体中文](README-zh.md) · [Español](README-es.md) · [Português](README-pt.md) · [हिन्दी](README-hi.md)
+
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%5E22.19%20%7C%7C%20%3E%3D24.9-brightgreen.svg)]()
 
-English · [简体中文](README-zh.md)
+</div>
 
 ---
 
@@ -17,6 +26,14 @@ English · [简体中文](README-zh.md)
 - **`sr_import`** — import RIS / BibTeX / CSL-JSON / CSV exports (inline content or a `ctx.fs` path). Parsed records go through the same `sr_init` path, so dedupe, revision bump and audit behave identically. Entries without a title are skipped and counted; it never searches or fetches.
 - **`sr_screen`** — record `include`/`exclude` at `title-abstract` or `full-text`. Two reviewers disagreeing = **conflict**; only an `adjudicator` can settle it, and only when a conflict exists. Exclusions require a reason. RoB 2 / ROBINS-I / GRADE assessments attach to the same ledger.
 - **`sr_prisma`** — derive the PRISMA 2020 counts, verify the hash-chained audit log, list integrity issues, and write `prisma.json`, `prisma.md`, `evidence-table.md`, `ledger.json` under `<root>/exports`.
+
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dsh-sr-ledger-flow-v5-dark.svg">
+  <img src="docs/assets/dsh-sr-ledger-flow-v5-light.svg" width="100%" alt="dsh-sr-ledger structure: sr_init writes the protocol revisions, sr_screen records dual screening with conflicts held open for an adjudicator, and sr_prisma derives the PRISMA 2020 counts and writes prisma.json, prisma.md, evidence-table.md and ledger.json">
+</picture>
+
+*Structure: protocol → screening → derivation; `counts` and `integrity` are the two outputs, a conflict stays open until an adjudicator acts, and every protocol revision is hash-chained. The token labels inside the diagram are the real tool names, field names and export files, so the same picture serves all five languages.*
 
 ## What it does not do
 
@@ -96,6 +113,11 @@ dsh --profile <name> --dump-config | grep dsh-sr-ledger
 - No PII handling beyond reviewer names the user supplies (use identifiers, not personal data).
 
 ## Evaluation
+
+![dsh-sr-ledger evaluation: the real verbose run of the ledger spec — 12 cases covering protocol revisions, dual-screening conflicts, adjudication-only resolution, PRISMA derivation and audit-chain tamper detection](docs/assets/dsh-sr-ledger-demo.gif)
+
+*Animated: the real `pnpm exec vitest run test/ledger.spec.ts` output on 2026-11-21 — the ledger invariants spec, one of the four spec files in this repository. Pass markers and timings are omitted; the case names and the summary lines are verbatim.*
+
 
 **16 tests**: protocol revision, full revision history and dedupe, invalid-record rejection, dual-screening conflict creation, adjudication-only resolution, exclusion-reason enforcement, adjudication-without-conflict rejection, unknown-record rejection, atomic rejection of an invalid assessment/role, RoB/GRADE recording, PRISMA count derivation, export bundle contents, audit-chain tamper detection, IO mapping, tool schemas and end-to-end execution, package contract.
 
