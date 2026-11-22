@@ -11,6 +11,8 @@
 
 *Registra o protocolo, cada decisão de triagem com revisor e etapa, as adjudicações de conflitos e as avaliações RoB/GRADE — e então deriva o fluxo PRISMA e exporta a tabela de evidências. Nada é resolvido em silêncio.*
 
+Última verificação: DeepSeek Harness `dsh-v0.2.3-alpha.1` (2026-11-22).
+
 [English](README.md) · [简体中文](README-zh.md) · [Español](README-es.md) · [हिन्दी](README-hi.md)
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
@@ -26,7 +28,6 @@
 - **`sr_import`** — importa exportações RIS / BibTeX / CSL-JSON / CSV (conteúdo inline ou um caminho de `ctx.fs`). Os registros analisados passam pelo mesmo caminho de `sr_init`, então deduplicação, aumento de revisão e auditoria se comportam de forma idêntica. Entradas sem título são ignoradas e contadas; ele nunca busca nem baixa nada.
 - **`sr_screen`** — registra `include`/`exclude` em `title-abstract` ou `full-text`. Dois revisores discordando = **conflito**; apenas um `adjudicator` pode resolvê-lo, e apenas quando existe um conflito. Exclusões exigem um motivo. Avaliações RoB 2 / ROBINS-I / GRADE ficam anexadas ao mesmo registro.
 - **`sr_prisma`** — deriva as contagens PRISMA 2020, verifica o log de auditoria encadeado por hash, lista os problemas de integridade e escreve `prisma.json`, `prisma.md`, `evidence-table.md` e `ledger.json` em `<root>/exports`.
-
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dsh-sr-ledger-flow-v5-dark.svg">

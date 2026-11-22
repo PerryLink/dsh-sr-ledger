@@ -11,6 +11,8 @@
 
 *प्रोटोकॉल, समीक्षक और चरण सहित हर स्क्रीनिंग निर्णय, संघर्षों का निपटान और RoB/GRADE मूल्यांकन दर्ज करता है — फिर PRISMA प्रवाह व्युत्पन्न करता है और एविडेंस तालिका निर्यात करता है। कुछ भी चुपचाप सुलझाया नहीं जाता।*
 
+अंतिम सत्यापन: DeepSeek Harness `dsh-v0.2.3-alpha.1` (2026-11-22).
+
 [English](README.md) · [简体中文](README-zh.md) · [Español](README-es.md) · [Português](README-pt.md)
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
@@ -26,7 +28,6 @@
 - **`sr_import`** — RIS / BibTeX / CSL-JSON / CSV निर्यात आयात करता है (इनलाइन सामग्री या `ctx.fs` पथ)। पार्स किए गए रिकॉर्ड उसी `sr_init` रास्ते से जाते हैं, इसलिए डुप्लिकेट हटाना, रिवीजन बढ़ाना और ऑडिट एक जैसा व्यवहार करते हैं। बिना शीर्षक वाली प्रविष्टियाँ छोड़ी और गिनी जाती हैं; यह कभी खोजता या डाउनलोड नहीं करता।
 - **`sr_screen`** — `title-abstract` या `full-text` पर `include`/`exclude` दर्ज करता है। दो समीक्षकों का असहमत होना = **संघर्ष**; इसे केवल एक `adjudicator` सुलझा सकता है, और केवल तब जब संघर्ष मौजूद हो। बहिष्करण के लिए कारण ज़रूरी है। RoB 2 / ROBINS-I / GRADE मूल्यांकन उसी लेजर से जुड़ते हैं।
 - **`sr_prisma`** — PRISMA 2020 गणनाएँ व्युत्पन्न करता है, हैश-चेन ऑडिट लॉग सत्यापित करता है, इंटीग्रिटी समस्याएँ सूचीबद्ध करता है, और `<root>/exports` के अंतर्गत `prisma.json`, `prisma.md`, `evidence-table.md`, `ledger.json` लिखता है।
-
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dsh-sr-ledger-flow-v5-dark.svg">
